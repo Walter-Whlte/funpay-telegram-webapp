@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunPay Manager</title>
+    <style>
+        :root {
+            --tg-theme-bg-color: #efeff3;
+            --tg-theme-text-color: #222222;
+            --tg-theme-button-color: #5bc8fb;
+            --tg-theme-secondary-bg-color: #ffffff;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            padding: 16px;
+            margin: 0;
+        }
+        
+        .card {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: var(--tg-theme-button-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .online {
+            background: #e0f7fa;
+            color: #00796b;
+        }
+        
+        .offline {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>FunPay Control Panel</h2>
+        <p>Версия: 1.0.0</p>
+        <div id="bot-status" class="status-badge online">🟢 Активен</div>
+    </div>
+    
+    <div class="card">
+        <h3>Управление лотами</h3>
+        <button class="btn" onclick="sendCommand('add_lot')">➕ Добавить лот</button>
+        <button class="btn" onclick="sendCommand('edit_lots')">✏️ Редактировать лоты</button>
+        <button class="btn" onclick="sendCommand('update_prices')">🔄 Обновить цены</button>
+    </div>
+    
+    <div class="card">
+        <h3>Статистика</h3>
+        <div id="stats-container">
+            <p>📊 <strong>Продажи сегодня:</strong> <span id="today-sales">0</span></p>
+            <p>💰 <strong>Доход:</strong> <span id="today-revenue">0 ₽</span></p>
+            <button class="btn" onclick="loadStats()">🔄 Обновить статистику</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Настройки</h3>
+        <button class="btn" onclick="openSettings()">⚙️ Настройки бота</button>
+        <button class="btn" onclick="showLogs()">📝 Показать логи</button>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        function initTelegramWebApp() {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            Telegram.WebApp.MainButton.setText("Закрыть").show().onClick(() => {
+                Telegram.WebApp.close();
+            });
+            
+            // Используем тему Telegram
+            document.body.style.backgroundColor = Telegram.WebApp.colorScheme === 'dark' ? '#212121' : '#efeff3';
+        }
+        
+        // Отправка команд боту
+        function sendCommand(command) {
+            Telegram.WebApp.sendData(JSON.stringify({
+                command: command,
+                user_id: Telegram.WebApp.initDataUnsafe.user?.id
+            }));
+        }
+        
+        // Загрузка статистики
+        function loadStats() {
+            Telegram.WebApp.sendData(JSON.stringify({
+                action: "get_stats"
+            }));
+        }
+        
+        // Обработка входящих данных
+        Telegram.WebApp.onEvent('webAppDataReceived', (event) => {
+            const data = JSON.parse(event);
+            if (data.stats) {
+                document.getElementById('today-sales').textContent = data.stats.sales;
+                document.getElementById('today-revenue').textContent = data.stats.revenue + ' ₽';
+            }
+        });
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', initTelegramWebApp);
+    </script>
+</body>
+</html>
